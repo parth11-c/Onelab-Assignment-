@@ -14,6 +14,7 @@ public class ReconciliationService {
         for (Transaction t : transactions) {
             txnMap.put(t.id, t);
         }
+
         Map<String, Integer> settlementCount = new HashMap<>();
 
         List<String> late = new ArrayList<>();
@@ -40,10 +41,10 @@ public class ReconciliationService {
             settlementCount.put(s.transactionId,
                     settlementCount.getOrDefault(s.transactionId, 0) + 1);
 
-          
             if (s.date.startsWith("2026-04")) {
                 late.add(s.transactionId);
             }
+
             Transaction t = txnMap.get(s.transactionId);
             if (t != null && Math.abs(t.amount - s.amount) > 0.01) {
                 rounding.add(s.transactionId);
@@ -61,12 +62,15 @@ public class ReconciliationService {
                 missing.add(t.id);
             }
         }
+
+        double diff = Math.round((settlementTotal - txnTotal) * 100.0) / 100.0;
+
         Map<String, Object> result = new HashMap<>();
         result.put("missing", missing);
         result.put("late", late);
         result.put("duplicates", duplicates);
         result.put("rounding", rounding);
-        result.put("difference", settlementTotal - txnTotal);
+        result.put("difference", diff);
         result.put("note", "Duplicate settlements excluded from total calculation");
 
         return result;
